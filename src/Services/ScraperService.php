@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Molitor\HtmlParser\HtmlParser;
 use Molitor\Scraper\Exceptions\InvalidDomain;
 use Molitor\Scraper\Exceptions\ScraperNameAlreadyExists;
@@ -264,7 +265,20 @@ class ScraperService
 
     private function downloadPage(ScraperUrl $scraperUrl): void
     {
-        $pageContent = $this->downloadContent($scraperUrl->url);
+        $result = $this->client->get($scraperUrl->url);
+        $status = $result->getStatusCode();
+
+        Log::channel('scraper')->info('Scraper started', [
+            'id' => $scraperUrl->id,
+            'url' => $scraperUrl->url,
+            'status' => $status,
+        ]);
+
+        if($status !== 200) {
+            return;
+        }
+
+        $pageContent = $result->getBody()->getContents();
         if(!$pageContent) {
             return;
         }
