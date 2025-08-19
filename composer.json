@@ -1,0 +1,26 @@
+{
+    "name": "molitor/scraper",
+    "description": "Site scraper",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Molitor István",
+            "email": "istvanmolitor@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Molitor\\Scraper\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Molitor\\Scraper\\Providers\\ScraperServiceProvider"
+            ]
+        }
+    }
+}
