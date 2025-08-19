@@ -29,36 +29,6 @@ class ScraperDownload extends Command
      */
     public function handle()
     {
-
-        $html = <<<HTML
-        <span class="rrr">
-                <dl>
-
-                    <dd>123</dd>
-                    <dt>BBB</dt>
-                    <dd>242</dd>
-                    <dt>CCC</dt>
-                    <dd>2423</dd>
-                </dl>
-            <div id="fff">
-                <p>Első</p>
-                <span>Második <b>Unoka</b></span>
-                <span>Második <b>Unoka</b></span>
-                <p>Harmadik</p>
-
-            </div>
-        </span>
-        HTML;
-
-        $a = new HtmlParser($html);
-
-        dd($a->getDls());
-
-
-
-
-
-
         $link = $this->argument('link');
         $id = $this->option('id');
 
