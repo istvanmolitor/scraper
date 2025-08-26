@@ -32,6 +32,11 @@ abstract class PageParser
 
     abstract public function makePriority(): int;
 
+    public function delay(): void
+    {
+
+    }
+
     /*********************************************************/
 
     public function reset(): void

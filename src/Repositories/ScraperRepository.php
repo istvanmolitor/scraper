@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Molitor\Scraper\Repositories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Molitor\Scraper\Services\Url;
 use Molitor\Scraper\Models\Scraper;
 
 class ScraperRepository implements ScraperRepositoryInterface
@@ -18,6 +18,31 @@ class ScraperRepository implements ScraperRepositoryInterface
     )
     {
         $this->scraper = new Scraper();
+    }
+
+    public function getNextScraper(): ?Scraper
+    {
+        return $this->scraper->where('enabled', 1)
+            ->where(function ($query) {
+                $query->whereNull('blocked')
+                    ->orWhere('blocked', '<', now());
+            })
+            ->first();
+    }
+
+    public function start(Scraper $scraper): Carbon
+    {
+        $blocked = Carbon::now();
+        $blocked->addSeconds($scraper->chunk_size * 10);
+        $scraper->blocked = $blocked;
+        $scraper->save();
+        return $blocked;
+    }
+
+    public function stop(Scraper $scraper): void
+    {
+        $scraper->blocked = null;
+        $scraper->save();
     }
 
     public function getByName(string $name): ?Scraper

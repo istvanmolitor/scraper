@@ -3,6 +3,9 @@
 namespace Molitor\Scraper\Console\Commands;
 
 use Illuminate\Console\Command;
+use Molitor\Scraper\Repositories\ScraperRepositoryInterface;
+use Molitor\Scraper\Repositories\ScraperUrlRepository;
+use Molitor\Scraper\Repositories\ScraperUrlRepositoryInterface;
 use Molitor\Scraper\Services\ScraperService;
 
 class ScraperRun extends Command
@@ -12,14 +15,14 @@ class ScraperRun extends Command
      *
      * @var string
      */
-    protected $signature = 'scraper:run {--force}';
+    protected $signature = 'scraper:run';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Weboldalak szkennelése';
+    protected $description = 'Tartalmak letöltése';
 
     /**
      * Execute the console command.
@@ -28,9 +31,27 @@ class ScraperRun extends Command
      */
     public function handle()
     {
-        $scraper = app(ScraperService::class);
-        $scraper->setCommand($this);
-        $scraper->run();
+        $scraperRepository = app(ScraperRepositoryInterface::class);
+        $scraper = $scraperRepository->getNextScraper();
+        if(!$scraper) {
+            return 0;
+        }
+
+        /** @var ScraperUrlRepository $scraperUrlRepository */
+        $scraperUrlRepository = app(ScraperUrlRepositoryInterface::class);
+
+        /** @var ScraperService $scraperService */
+        $scraperService = app(ScraperService::class);
+
+        //$scraperRepository->start($scraper);
+        $scraperUrls = $scraperUrlRepository->getTasksByScraper($scraper);
+
+        foreach ($scraperUrls as $scraperUrl) {
+            $this->info('Download: ' . $scraperUrl->id . ' - '. $scraperUrl->url);
+            $scraperService->downloadScraperUrl($scraperUrl);
+        }
+
+        $scraperRepository->stop($scraper);
 
         return 0;
     }

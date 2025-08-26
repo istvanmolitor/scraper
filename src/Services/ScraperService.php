@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Molitor\HtmlParser\HtmlParser;
 use Molitor\Scraper\Exceptions\InvalidDomain;
@@ -309,8 +310,6 @@ class ScraperService
 
         event(new ScraperUrlUpdateEvent($scraperUrl, $pageParser->getData()));
 
-        $this->printInfo($scraperUrl->url);
-
         if ($scraper->follow_links) {
             $this->storeLinks($html->findLinks(), $scraperUrl, 'page', 1);
         }
@@ -360,6 +359,7 @@ class ScraperService
         $sitemaps = array_unique($sitemaps);
 
         $this->storeLinks($sitemaps, $scraperUrl, 'sitemap', 0);
+        $scraperUrl->touch('downloaded_at');
     }
 
     /*Sitemap*************************************************************************************/
@@ -384,6 +384,7 @@ class ScraperService
             }
             $this->storeLinks($links, $scraperUrl, 'page', 1);
         }
+        $scraperUrl->touch('downloaded_at');
     }
 
     /**************************************************************************************/
@@ -392,78 +393,38 @@ class ScraperService
      * Visszaadja a feladatokat amiken végig kell menni.
      * @return array
      */
-    public function getTasks(): array
+    public function getTasks($limit): Collection
     {
-        $tasks = [];
-        foreach ($this->scraperRepository->getEnabledScrapers() as $scraper) {
-            foreach ($this->scraperUrlRepository->getTasksByScraper($scraper, $this->limit) as $scraperUrl) {
-                $tasks[] = $scraperUrl;
-            }
-        }
-        shuffle($tasks);
-        return array_slice($tasks, 0, $this->limit);
-    }
+        $scrapers = $this->scraperRepository->getEnabledScrapers();
 
-    /**************************************************************************************/
+        $numScrapers = $scrapers->count();
 
-    public function run(): void
-    {
-        Log::debug('A site scraper fut.');
-        $this->doTasks();
-    }
+        $scraperLimit = ceil($limit / $numScrapers);
 
-    public function doTasks(): void
-    {
-        $this->clearTasks();
-
-        $tasks = $this->getTasks();
-
-        foreach ($tasks as $task) {
-            $this->tasks[] = $task;
-            if (count($this->tasks) >= $this->numberOfProcesses) {
-                $this->solveTasks();
-            }
+        $tasks = collect();
+        foreach ($scrapers as $scraper) {
+            $tasks = $this->scraperUrlRepository->getTasksByScraper($scraper, $scraperLimit);
+            $tasks = $tasks->merge($tasks);
         }
 
-        if (count($this->tasks) > 0) {
-            $this->solveTasks();
-        }
-
-        $this->storeNewTasks();
-    }
-
-    public function clearTasks(): void
-    {
-        $this->tasks = [];
-    }
-
-    protected function solveTasks(): void
-    {
-        $urls = [];
-        foreach ($this->tasks as $task) {
-            $urls[$task->id] = $task->url;
-        }
-
-        /** @var array $htmls */
-        $htmls = $this->downloadContent($urls);
-
-        foreach ($this->tasks as $task) {
-            $this->solveTask($task, $htmls[$task->url]);
-        }
-
-        $this->clearTasks();
-    }
-
-    private function deleteTask(ScraperUrl $task): void
-    {
-        $siteParser = $this->getPageParser($task);
-        $siteParser->delete($task);
-        $task->delete();
+        return $tasks;
     }
 
     /*Registered links**********************************************************************************************/
 
-    protected function storeLinks(array $links, Scraper|ScraperUrl $parent, string $type = null, int $priority = null)
+    public function storeLink(string $link): ScraperUrl
+    {
+        $url = new Url($link);
+        $domain = $this->getDomainByUrl($url);
+        $scraper = $this->getScraperByLink($domain);
+        $parser = $this->getPageParserByDomain($scraper);
+        $parser->reset();
+        $parser->prepareLink($link);
+        $this->storeLinks([$link], $scraper, $parser->getType(), $parser->getPriority());
+        return $this->getScraperUrlByLink($link);
+    }
+
+    protected function storeLinks(array $links, Scraper|ScraperUrl $parent, string $type = null, int $priority = null): void
     {
         if($parent instanceof Scraper) {
             $scraperId = $parent->id;
@@ -475,9 +436,7 @@ class ScraperService
         }
 
         $pageParser = $this->getPageParserByScraperId($scraperId);
-
         foreach ($links as $link) {
-
             $pageParser->reset();
             $pageParser->setLink($link);
             $preparedLink = $pageParser->getLink();
@@ -485,8 +444,8 @@ class ScraperService
             if($preparedLink) {
                 $this->addRegisteredLink(
                     $scraperId,
-                    $type,
                     $preparedLink,
+                    $type,
                     $priority,
                     $parentId
                 );
@@ -500,7 +459,7 @@ class ScraperService
         $this->registeredLinks = [];
     }
 
-    protected function addRegisteredLink(int $scraperId, string $type, string $link, ?int $priority, ?int $parentId): void
+    protected function addRegisteredLink(int $scraperId, string $link, ?string $type, ?int $priority, ?int $parentId): void
     {
         $now = Carbon::now();
 
@@ -557,23 +516,11 @@ class ScraperService
         return $htmlParsers;
     }
 
-    private function printInfo(string $message): void
+    public function delay(Scraper $scraper): void
     {
-        if ($this->command) {
-            $this->command->info($message);
+        $parser = $this->getPageParserByScraper($scraper);
+        if($parser) {
+            $parser->delay();
         }
-    }
-
-    private function printError(string $message): void
-    {
-        if ($this->command) {
-            $this->command->error($message);
-        }
-    }
-
-    public function setCommand(Command $command): self
-    {
-        $this->command = $command;
-        return $this;
     }
 }

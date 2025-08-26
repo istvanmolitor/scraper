@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Molitor\Scraper\Repositories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Molitor\Scraper\Services\Url;
 use Molitor\Scraper\Models\Scraper;
 
 interface ScraperRepositoryInterface
 {
+    public function getNextScraper(): ?Scraper;
+
+    public function start(Scraper $scraper): Carbon;
+
+    public function stop(Scraper $scraper): void;
+
     public function getEnabledScrapers(): Collection;
 
     public function getAllForStatus(): Collection;

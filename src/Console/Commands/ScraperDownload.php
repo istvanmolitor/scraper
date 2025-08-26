@@ -47,11 +47,21 @@ class ScraperDownload extends Command
 
         if($link) {
             $scraperUrl = $scraperService->getScraperUrlByLink($link);
+            if(!$scraperUrl) {
+                try {
+                    $scraperUrl = $scraperService->storeLink($link);
+                }
+                catch (\Exception $e) {
+                    $this->error($e->getMessage());
+                    return 1;
+                }
+            }
         }
         else {
             $scraperUrl = $scraperService->getScraperUrlById($id);
         }
 
+        $this->info('Download: ' . $scraperUrl->url);
         $scraperService->downloadScraperUrl($scraperUrl);
 
         return 0;

@@ -7,6 +7,7 @@ use Molitor\Scraper\Console\Commands\ScraperCreate;
 use Molitor\Scraper\Console\Commands\ScraperDownload;
 use Molitor\Scraper\Console\Commands\ScraperInfo;
 use Molitor\Scraper\Console\Commands\ScraperRun;
+use Molitor\Scraper\Console\Commands\ScraperWork;
 use Molitor\Scraper\Repositories\ScraperRepository;
 use Molitor\Scraper\Repositories\ScraperRepositoryInterface;
 use Molitor\Scraper\Repositories\ScraperUrlRepository;
@@ -28,6 +29,7 @@ class ScraperServiceProvider extends ServiceProvider
                 ScraperRun::class,
                 ScraperDownload::class,
                 ScraperInfo::class,
+                ScraperWork::class,
             ]);
         }
     }

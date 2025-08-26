@@ -24,6 +24,8 @@ return new class extends Migration
                 $table->boolean('enabled');
                 $table->boolean('robots_txt');
                 $table->boolean('follow_links');
+                $table->unsignedInteger('chunk_size')->default(1000);
+                $table->dateTime('blocked')->nullable();
                 $table->timestamps();
 
                 $table->unique(['base_url']);

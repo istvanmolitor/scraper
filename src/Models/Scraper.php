@@ -14,12 +14,16 @@ class Scraper extends Model
         'enabled',
         'robots_txt',
         'follow_links',
+        'chunk_size',
+        'blocked'
     ];
 
     protected $casts = [
         'enabled' => 'bool',
         'robots_txt' => 'bool',
         'follow_links' => 'bool',
+        'chunk_size' => 'int',
+        'blocked' => 'datetime',
     ];
 
     public function __toString()

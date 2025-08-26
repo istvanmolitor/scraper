@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Molitor\Scraper\Repositories;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\LazyCollection;
 use Molitor\Scraper\Models\Scraper;
 use Molitor\Scraper\Models\ScraperUrl;
@@ -30,7 +29,7 @@ interface ScraperUrlRepositoryInterface
 
     public function getNumDownloadUrlsByScraper(Scraper $scraper): int;
 
-    public function getTasksByScraper(Scraper $scraper, int $limit): LazyCollection;
+    public function getTasksByScraper(Scraper $scraper): LazyCollection;
 
     public function getById(int $id): ?ScraperUrl;
 }

@@ -6,6 +6,7 @@ namespace Molitor\Scraper\Repositories;
 
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\LazyCollection;
 use Molitor\Scraper\Models\Scraper;
 use Molitor\Scraper\Models\ScraperUrl;
@@ -32,45 +33,19 @@ class ScraperUrlRepository implements ScraperUrlRepositoryInterface
             ->first();
     }
 
-    public function getNextScraperUrl(Scraper $scraper, int $numberOfProcesses, int $processId): ?ScraperUrl
+    public function getNextScraperUrls(Scraper $scraper, int $limit): Collection
     {
-        //Sor ami még soha nem volt letöltve
-        $scraperUrl = $this->scraperUrl
-            ->where('scraper_id', $scraper->id)
-            ->whereNull('downloaded_at')
-            ->whereRaw('(id MOD ' . $numberOfProcesses . '=' . $processId . ')')
-            ->orderBy('priority')
-            ->first();
-
-        if ($scraperUrl) {
-            return $scraperUrl;
-        }
-
-        //Sor amit már le kell tölteni
-        $scraperUrl = $this->scraperUrl
+        return $this->scraperUrl
             ->where('scraper_id', $scraper->id)
             ->where(function ($query) {
                 $query->whereNull('expiration_at')
-                    ->orWhere('expiration_at', '<=', Carbon::now());
+                    ->orWhere('expiration_at', '<=', Carbon::now())
+                    ->orWhereNull('downloaded_at');
             })
-            ->whereRaw('(id MOD ' . $numberOfProcesses . '=' . $processId . ')')
-            ->orderBy('priority')
-            ->orderBy('downloaded_at')
-            ->first();
-
-        if ($scraperUrl) {
-            return $scraperUrl;
-        }
-
-        if (!$scraper->follow_links) {
-            return null;
-        }
-
-        if ($this->scraperUrl->where('scraper_id', $scraper->id)->count() === 0) {
-            return $this->getScraperUrl($scraper, $scraper->base_url);
-        }
-
-        return null;
+            ->orderBy('priority', 'ASC')
+            ->orderBy('downloaded_at', 'DESC')
+            ->limit($limit)
+            ->get();
     }
 
     /**
@@ -138,16 +113,16 @@ class ScraperUrlRepository implements ScraperUrlRepositoryInterface
             ->count();
     }
 
-    public function getTasksByScraper(Scraper $scraper, int $limit): LazyCollection
+    public function getTasksByScraper(Scraper $scraper): LazyCollection
     {
-        $limit = min($limit, $scraper->period_limit - $this->getNumTasksByScraper($scraper));
-
         return $this->scraperUrl
-            ->where('scraper_id', $scraper->id)
-            ->orWhere('expiration_at', '<=', Carbon::now())
+            ->where(function ($query) use ($scraper) {
+                $query->where('scraper_id', $scraper->id)
+                    ->orWhere('expiration_at', '<=', Carbon::now());
+            })
             ->orderBy('priority', 'ASC')
             ->orderBy('downloaded_at', 'DESC')
-            ->limit($limit)
+            ->limit($scraper->chunk_size)
             ->cursor();
     }
 
