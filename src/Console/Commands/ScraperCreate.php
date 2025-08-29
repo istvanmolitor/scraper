@@ -3,6 +3,7 @@
 namespace Molitor\Scraper\Console\Commands;
 
 use Illuminate\Console\Command;
+use Molitor\Scraper\Exceptions\ScraperNameAlreadyExists;
 use Molitor\Scraper\Services\ScraperService;
 
 class ScraperCreate extends Command
@@ -35,13 +36,20 @@ class ScraperCreate extends Command
         $enabled = $this->confirm('Szeretnéd engedélyezni?', true);
 
         $scraper = app(ScraperService::class);
-        $scraper->createScraper(
-            $name,
-            $domain,
-            $robotsTxt,
-            $followLinks,
-            $enabled
-        );
+
+        try {
+            $scraper->createScraper(
+                $name,
+                $domain,
+                $robotsTxt,
+                $followLinks,
+                $enabled
+            );
+        }
+        catch (ScraperNameAlreadyExists $e) {
+            $this->error("A név már foglalt.");
+            return 1;
+        }
 
         $this->info('A scraper sikeresen létrehozva!');
 

@@ -298,13 +298,10 @@ class ScraperService
         $pageParser->parseExpiration((new Carbon())->addMonths(1));
         $pageParser->parseData(null);
 
-        $now = Carbon::now();
-
         $scraperUrl->fill([
             'type' => $pageParser->getType(),
             'priority' => $pageParser->getPriority(),
             'expiration_at' => $pageParser->getExpiration(),
-            'downloaded_at' => $now,
         ]);
         $scraperUrl->save();
 
@@ -359,7 +356,6 @@ class ScraperService
         $sitemaps = array_unique($sitemaps);
 
         $this->storeLinks($sitemaps, $scraperUrl, 'sitemap', 0);
-        $scraperUrl->touch('downloaded_at');
     }
 
     /*Sitemap*************************************************************************************/
@@ -384,7 +380,6 @@ class ScraperService
             }
             $this->storeLinks($links, $scraperUrl, 'page', 1);
         }
-        $scraperUrl->touch('downloaded_at');
     }
 
     /**************************************************************************************/
@@ -461,7 +456,7 @@ class ScraperService
 
     protected function addRegisteredLink(int $scraperId, string $link, ?string $type, ?int $priority, ?int $parentId): void
     {
-        $now = Carbon::now();
+        $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $this->registeredLinks[$link] = [
             'scraper_id' => $scraperId,

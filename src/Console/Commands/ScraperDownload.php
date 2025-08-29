@@ -59,6 +59,10 @@ class ScraperDownload extends Command
         }
         else {
             $scraperUrl = $scraperService->getScraperUrlById($id);
+            if(!$scraperUrl) {
+                $this->error('A link nem létezik.');
+                return 1;
+            }
         }
 
         $this->info('Download: ' . $scraperUrl->url);
