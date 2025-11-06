@@ -4,6 +4,9 @@ namespace Molitor\Scraper\Filament\Resources\ScraperResource\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
 use Molitor\Scraper\Filament\Resources\ScraperResource;
+use Molitor\Scraper\Filament\Resources\ScraperUrlResource;
+use Molitor\Scraper\Models\Scraper;
+use Molitor\Scraper\Services\ScraperService;
 
 class CreateScraper extends CreateRecord
 {
@@ -12,5 +15,31 @@ class CreateScraper extends CreateRecord
     public function getTitle(): string
     {
         return 'Create Scraper';
+    }
+
+    public function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['base_url'] = parse_url($data['base_url'], PHP_URL_SCHEME) . '://' . parse_url($data['base_url'], PHP_URL_HOST);
+        return $data;
+    }
+
+    public function afterCreate()
+    {
+        /** @var Scraper $scraper */
+        $scraper = $this->record;
+
+        /** @var ScraperService $scraperService */
+        $scraperService = app(ScraperService::class);
+        $scraperService->addBaseLinks($scraper);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        /** @var Scraper $scraper */
+        $scraper = $this->record;
+
+        return ScraperUrlResource::getUrl('index', [
+            'scraper_id' => $scraper->id,
+        ]);
     }
 }

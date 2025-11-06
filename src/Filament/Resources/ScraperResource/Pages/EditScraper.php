@@ -6,6 +6,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\EditRecord;
 use Molitor\Scraper\Filament\Resources\ScraperResource;
+use Molitor\Scraper\Filament\Resources\ScraperUrlResource;
+use Molitor\Scraper\Models\Scraper;
 
 class EditScraper extends EditRecord
 {
@@ -23,5 +25,15 @@ class EditScraper extends EditRecord
                 DeleteAction::make(),
             ]),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        /** @var Scraper $scraper */
+        $scraper = $this->record;
+
+        return ScraperUrlResource::getUrl('index', [
+            'scraper_id' => $scraper->id,
+        ]);
     }
 }

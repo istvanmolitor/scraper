@@ -37,7 +37,7 @@ class ScraperUrlResource extends Resource
 
     public static function canAccess(): bool
     {
-        return Gate::allows('acl', 'scraper') && request()->has('scraper_id');
+        return Gate::allows('acl', 'scraper');
     }
 
     public static function form(Schema $schema): Schema
@@ -51,6 +51,7 @@ class ScraperUrlResource extends Resource
                             ->relationship('scraper', 'name')
                             ->searchable()
                             ->preload()
+                            ->default(fn () => request()->integer('scraper_id') ?: null)
                             ->required(),
                         TextInput::make('type')
                             ->label('Type')

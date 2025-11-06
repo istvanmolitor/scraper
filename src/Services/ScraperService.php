@@ -233,14 +233,18 @@ class ScraperService
         $scraper = $this->scraperRepository->create($name, $baseUrl, $robotsTxt, $followLinks, $enabled);
 
         $this->init();
+        $this->addBaseLinks($scraper);
+        return $scraper;
+    }
 
-        if($robotsTxt) {
+    public function addBaseLinks(Scraper $scraper): void
+    {
+        if($scraper->robots_txt) {
             $this->storeRobotsTxt($scraper);
         }
-        if($followLinks) {
+        if($scraper->follow_links) {
             $this->storeLinks([$scraper->base_url], $scraper, 'domain', 0);
         }
-        return $scraper;
     }
 
     /*Download*************************************************************************************/
