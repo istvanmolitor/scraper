@@ -60,4 +60,11 @@ return [
             ],
         ],
     ],
+
+    'widgets' => [
+        'total_links' => 'Összes link',
+        'total_links_description' => 'Az összes URL a scraperben',
+        'remaining_links' => 'Hátralévő letöltések',
+        'remaining_links_description' => 'Még letöltendő URL-ek száma',
+    ],
 ];
