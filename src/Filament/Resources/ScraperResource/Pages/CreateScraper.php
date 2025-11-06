@@ -14,7 +14,7 @@ class CreateScraper extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create Scraper';
+        return __('scraper::messages.scraper.pages.create');
     }
 
     public function mutateFormDataBeforeCreate(array $data): array

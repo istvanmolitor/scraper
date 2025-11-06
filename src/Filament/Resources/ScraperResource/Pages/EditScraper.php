@@ -15,7 +15,7 @@ class EditScraper extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Edit Scraper';
+        return __('scraper::messages.scraper.pages.edit');
     }
 
     protected function getHeaderActions(): array

@@ -360,6 +360,9 @@ class ScraperService
         $sitemaps = array_unique($sitemaps);
 
         $this->storeLinks($sitemaps, $scraperUrl, 'sitemap', 0);
+
+        $scraperUrl->expiration_at = Carbon::now()->addDays();
+        $scraperUrl->save();
     }
 
     /*Sitemap*************************************************************************************/
@@ -384,6 +387,9 @@ class ScraperService
             }
             $this->storeLinks($links, $scraperUrl, 'page', 1);
         }
+
+        $scraperUrl->expiration_at = Carbon::now()->addDays();
+        $scraperUrl->save();
     }
 
     /**************************************************************************************/

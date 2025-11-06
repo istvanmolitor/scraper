@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -45,7 +46,7 @@ class ScraperUrlResource extends Resource
         return $schema->components([
             Grid::make(2)->schema([
                 Select::make('scraper_id')
-                    ->label('Scraper')
+                    ->label(__('scraper::messages.scraper_url.fields.scraper'))
                     ->relationship('scraper', 'name')
                     ->searchable()
                     ->preload()
@@ -54,32 +55,32 @@ class ScraperUrlResource extends Resource
                     ->dehydrated(fn (string $operation) => $operation !== 'edit')
                     ->required(),
                 TextInput::make('type')
-                    ->label('Type')
+                    ->label(__('scraper::messages.scraper_url.fields.type'))
                     ->maxLength(50),
             ]),
             Grid::make(3)->schema([
                 TextInput::make('priority')
-                    ->label('Priority')
+                    ->label(__('scraper::messages.scraper_url.fields.priority'))
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(100000),
                 TextInput::make('parent_id')
-                    ->label('Parent ID')
+                    ->label(__('scraper::messages.scraper_url.fields.parent_id'))
                     ->numeric(),
                 DateTimePicker::make('downloaded_at')
-                    ->label('Downloaded at')
+                    ->label(__('scraper::messages.scraper_url.fields.downloaded_at'))
                     ->native(false)
                     ->seconds(false),
             ]),
             Grid::make(2)->schema([
                 DateTimePicker::make('expiration_at')
-                    ->label('Expiration at')
+                    ->label(__('scraper::messages.scraper_url.fields.expiration_at'))
                     ->native(false)
                     ->seconds(false),
                 KeyValue::make('meta_data')
-                    ->label('Meta data')
-                    ->keyLabel('Key')
-                    ->valueLabel('Value')
+                    ->label(__('scraper::messages.scraper_url.fields.meta_data'))
+                    ->keyLabel(__('scraper::messages.scraper_url.fields.meta_key'))
+                    ->valueLabel(__('scraper::messages.scraper_url.fields.meta_value'))
                     ->columnSpanFull(),
             ])->columns(2),
         ])->columns(1);
@@ -89,11 +90,14 @@ class ScraperUrlResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('type')->label('Type')->sortable()->searchable(),
-                TextColumn::make('url')->label('URL')->wrap()->searchable(),
-                TextColumn::make('priority')->label('Priority')->sortable(),
-                TextColumn::make('downloaded_at')->dateTime()->label('Downloaded'),
-                TextColumn::make('expiration_at')->dateTime()->label('Expires'),
+                IconColumn::make('ok')
+                    ->label(__('scraper::messages.scraper_url.fields.ready'))
+                    ->boolean()
+                    ->state(fn (ScraperUrl $record) => $record->downloaded_at !== null && optional($record->expiration_at)->isFuture()),
+                TextColumn::make('type')->label(__('scraper::messages.scraper_url.fields.type'))->sortable()->searchable(),
+                TextColumn::make('url')->label(__('scraper::messages.scraper_url.fields.url'))->wrap()->searchable(),
+                TextColumn::make('priority')->label(__('scraper::messages.scraper_url.fields.priority'))->sortable(),
+                TextColumn::make('expiration_at')->dateTime()->label(__('scraper::messages.scraper_url.fields.expires')),
             ])
             ->filters([
             ])
@@ -104,7 +108,7 @@ class ScraperUrlResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('download')
-                        ->label('Letöltés')
+                        ->label(__('scraper::messages.scraper_url.bulk.download'))
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function (Collection $records): void {
 
@@ -116,8 +120,8 @@ class ScraperUrlResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Letöltés elindítva')
-                                ->body('A kiválasztott URL-ek letöltése folyamatban van.')
+                                ->title(__('scraper::messages.scraper_url.notifications.download_started.title'))
+                                ->body(__('scraper::messages.scraper_url.notifications.download_started.body'))
                                 ->success()
                                 ->send();
                         }),

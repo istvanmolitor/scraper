@@ -13,7 +13,7 @@ class EditScraperUrl extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Edit URL';
+        return __('scraper::messages.scraper_url.pages.edit');
     }
 
     protected function getHeaderActions(): array

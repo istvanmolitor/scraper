@@ -28,12 +28,12 @@ class ScraperResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'Tools';
+        return __('scraper::messages.navigation.group_tools');
     }
 
     public static function getNavigationLabel(): string
     {
-        return 'Scrapers';
+        return __('scraper::messages.navigation.scrapers');
     }
 
     public static function canAccess(): bool
@@ -44,22 +44,22 @@ class ScraperResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Toggle::make('enabled')->label('Enabled')->default(true),
+            Toggle::make('enabled')->label(__('scraper::messages.scraper.fields.enabled'))->default(true),
             TextInput::make('name')
-                ->label('Name')
+                ->label(__('scraper::messages.scraper.fields.name'))
                 ->maxLength(255)
                 ->required(),
             TextInput::make('base_url')
-                ->label('Base URL')
+                ->label(__('scraper::messages.scraper.fields.base_url'))
                 ->url()
                 ->maxLength(255)
                 ->required(),
 
-            Toggle::make('robots_txt')->label('Respect robots.txt')->default(true),
-            Toggle::make('follow_links')->label('Follow links')->default(false),
+            Toggle::make('robots_txt')->label(__('scraper::messages.scraper.fields.robots_txt'))->default(true),
+            Toggle::make('follow_links')->label(__('scraper::messages.scraper.fields.follow_links'))->default(false),
 
             TextInput::make('chunk_size')
-                ->label('Chunk size')
+                ->label(__('scraper::messages.scraper.fields.chunk_size'))
                 ->numeric()
                 ->required()
                 ->default(1000)
@@ -72,15 +72,15 @@ class ScraperResource extends Resource
     {
         return $table
             ->columns([
-                IconColumn::make('enabled')->boolean()->label('Enabled'),
-                TextColumn::make('name')->label('Name')->searchable()->sortable(),
-                TextColumn::make('base_url')->label('Base URL')->searchable()->wrap(),
+                IconColumn::make('enabled')->boolean()->label(__('scraper::messages.scraper.table.enabled')),
+                TextColumn::make('name')->label(__('scraper::messages.scraper.table.name'))->searchable()->sortable(),
+                TextColumn::make('base_url')->label(__('scraper::messages.scraper.table.base_url'))->searchable()->wrap(),
             ])
             ->filters([
             ])
             ->actions([
                 Action::make('products')
-                    ->label('Linkek')
+                    ->label(__('scraper::messages.scraper.actions.links'))
                     ->icon('heroicon-o-link')
                     ->url(function ($record) {
                         return 'scraper-urls?scraper_id=' . $record->getKey();

@@ -11,6 +11,6 @@ class CreateScraperUrl extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create URL';
+        return __('scraper::messages.scraper_url.pages.create');
     }
 }

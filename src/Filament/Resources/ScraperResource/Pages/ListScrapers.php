@@ -13,14 +13,14 @@ class ListScrapers extends ListRecords
 
     public function getTitle(): string
     {
-        return 'Scrapers';
+        return __('scraper::messages.scraper.pages.title');
     }
 
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
-                ->label('Create Scraper')
+                ->label(__('scraper::messages.scraper.pages.create'))
                 ->icon('heroicon-o-plus'),
         ];
     }

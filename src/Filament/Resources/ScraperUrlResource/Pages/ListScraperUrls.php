@@ -15,14 +15,14 @@ class ListScraperUrls extends ListRecords
 
     public function getTitle(): string
     {
-        return 'Scraper URLs';
+        return __('scraper::messages.scraper_url.pages.title');
     }
 
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
-                ->label('Create URL')
+                ->label(__('scraper::messages.scraper_url.pages.create'))
                 ->icon('heroicon-o-plus')
                 ->url(function () {
                     $scraperId = request()->integer('scraper_id');
