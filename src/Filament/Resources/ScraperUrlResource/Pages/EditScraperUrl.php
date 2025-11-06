@@ -1,19 +1,19 @@
 <?php
 
-namespace Molitor\Scraper\Filament\Resources\ScraperResource\Pages;
+namespace Molitor\Scraper\Filament\Resources\ScraperUrlResource\Pages;
 
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Molitor\Scraper\Filament\Resources\ScraperResource;
+use Molitor\Scraper\Filament\Resources\ScraperUrlResource;
 
-class EditScraper extends EditRecord
+class EditScraperUrl extends EditRecord
 {
-    protected static string $resource = ScraperResource::class;
+    protected static string $resource = ScraperUrlResource::class;
 
     public function getTitle(): string
     {
-        return 'Edit Scraper';
+        return 'Edit URL';
     }
 
     protected function getHeaderActions(): array
