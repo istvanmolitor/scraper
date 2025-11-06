@@ -2,20 +2,26 @@
 
 namespace Molitor\Scraper\Filament\Resources;
 
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 use Molitor\Scraper\Filament\Resources\ScraperUrlResource\Pages;
 use Molitor\Scraper\Models\ScraperUrl;
+use Molitor\Scraper\Services\ScraperService;
 
 class ScraperUrlResource extends Resource
 {
@@ -108,6 +114,27 @@ class ScraperUrlResource extends Resource
                 DeleteAction::make(),
             ])
             ->bulkActions([
+                BulkActionGroup::make([
+                    BulkAction::make('download')
+                        ->label('Letöltés')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function (Collection $records): void {
+
+                            /** @var ScraperService $scraperService */
+                            $scraperService = app(ScraperService::class);
+
+                            foreach ($records as $record) {
+                                $scraperService->downloadScraperUrl($record);
+                            }
+
+                            Notification::make()
+                                ->title('Letöltés elindítva')
+                                ->body('A kiválasztott URL-ek letöltése folyamatban van.')
+                                ->success()
+                                ->send();
+                        }),
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 
