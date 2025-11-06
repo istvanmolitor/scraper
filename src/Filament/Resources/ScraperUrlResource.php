@@ -43,58 +43,46 @@ class ScraperUrlResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Scraper URL')
-                ->schema([
-                    Grid::make(2)->schema([
-                        Select::make('scraper_id')
-                            ->label('Scraper')
-                            ->relationship('scraper', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->default(fn () => request()->integer('scraper_id') ?: null)
-                            ->required(),
-                        TextInput::make('type')
-                            ->label('Type')
-                            ->maxLength(50),
-                    ]),
-                    Grid::make(2)->schema([
-                        TextInput::make('url')
-                            ->label('URL')
-                            ->url()
-                            ->required()
-                            ->maxLength(2048),
-                        TextInput::make('hash')
-                            ->label('Hash')
-                            ->maxLength(64)
-                            ->disabled(),
-                    ]),
-                    Grid::make(3)->schema([
-                        TextInput::make('priority')
-                            ->label('Priority')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100000),
-                        TextInput::make('parent_id')
-                            ->label('Parent ID')
-                            ->numeric(),
-                        DateTimePicker::make('downloaded_at')
-                            ->label('Downloaded at')
-                            ->native(false)
-                            ->seconds(false),
-                    ]),
-                    Grid::make(2)->schema([
-                        DateTimePicker::make('expiration_at')
-                            ->label('Expiration at')
-                            ->native(false)
-                            ->seconds(false),
-                        KeyValue::make('meta_data')
-                            ->label('Meta data')
-                            ->keyLabel('Key')
-                            ->valueLabel('Value')
-                            ->columnSpanFull(),
-                    ])->columns(2),
-                ])->columns(1),
-        ]);
+            Grid::make(2)->schema([
+                Select::make('scraper_id')
+                    ->label('Scraper')
+                    ->relationship('scraper', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->default(fn () => request()->integer('scraper_id') ?: null)
+                    ->disabledOn('edit')
+                    ->dehydrated(fn (string $operation) => $operation !== 'edit')
+                    ->required(),
+                TextInput::make('type')
+                    ->label('Type')
+                    ->maxLength(50),
+            ]),
+            Grid::make(3)->schema([
+                TextInput::make('priority')
+                    ->label('Priority')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100000),
+                TextInput::make('parent_id')
+                    ->label('Parent ID')
+                    ->numeric(),
+                DateTimePicker::make('downloaded_at')
+                    ->label('Downloaded at')
+                    ->native(false)
+                    ->seconds(false),
+            ]),
+            Grid::make(2)->schema([
+                DateTimePicker::make('expiration_at')
+                    ->label('Expiration at')
+                    ->native(false)
+                    ->seconds(false),
+                KeyValue::make('meta_data')
+                    ->label('Meta data')
+                    ->keyLabel('Key')
+                    ->valueLabel('Value')
+                    ->columnSpanFull(),
+            ])->columns(2),
+        ])->columns(1);
     }
 
     public static function table(Table $table): Table
