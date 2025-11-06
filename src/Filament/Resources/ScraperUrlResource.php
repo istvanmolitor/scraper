@@ -19,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Molitor\Scraper\Filament\Resources\ScraperUrlResource\Pages;
 use Molitor\Scraper\Models\ScraperUrl;
 use Molitor\Scraper\Services\ScraperService;
@@ -29,14 +30,14 @@ class ScraperUrlResource extends Resource
 
     protected static \BackedEnum|null|string $navigationIcon = 'heroicon-o-link';
 
-    public static function getNavigationGroup(): string
+    public static function shouldRegisterNavigation(): bool
     {
-        return 'Tools';
+        return false;
     }
 
-    public static function getNavigationLabel(): string
+    public static function canAccess(): bool
     {
-        return 'Scraper URLs';
+        return Gate::allows('acl', 'scraper') && request()->has('scraper_id');
     }
 
     public static function form(Schema $schema): Schema
@@ -99,11 +100,9 @@ class ScraperUrlResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('scraper.name')->label('Scraper')->sortable()->searchable(),
                 TextColumn::make('type')->label('Type')->sortable()->searchable(),
                 TextColumn::make('url')->label('URL')->wrap()->searchable(),
                 TextColumn::make('priority')->label('Priority')->sortable(),
-                TextColumn::make('parent_id')->label('Parent'),
                 TextColumn::make('downloaded_at')->dateTime()->label('Downloaded'),
                 TextColumn::make('expiration_at')->dateTime()->label('Expires'),
             ])
