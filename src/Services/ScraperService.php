@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Molitor\HtmlParser\HtmlParser;
 use Molitor\Scraper\Exceptions\InvalidDomain;
@@ -372,30 +373,39 @@ class ScraperService
 
     /*Sitemap*************************************************************************************/
 
-    private function downloadSitemap(ScraperUrl $scraperUrl): bool
+    function downloadSitemap(ScraperUrl $scraperUrl): bool
     {
         $sitemapContent = $this->downloadContent($scraperUrl->url);
-        $xml = simplexml_load_string($sitemapContent, "SimpleXMLElement", LIBXML_NOCDATA);
-        $sitemapData = json_decode(json_encode($xml), true);
+        $xml = simplexml_load_string($sitemapContent, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-        if(isset($sitemapData['sitemap'])) {
-            $links = [];
-            foreach($sitemapData['sitemap'] as $sitemap) {
-                $links[] = $sitemap['loc'];
-            }
-            $this->storeLinks($links, $scraperUrl, 'sitemap', 0);
-        }
-        elseif(isset($sitemapData['url'])) {
-            $links = [];
-            foreach($sitemapData['url'] as $sitemap) {
-                $links[] = $sitemap['loc'];
-            }
-            $this->storeLinks($links, $scraperUrl, 'page', 1);
+        if (! $xml) {
+            return false;
         }
 
         $scraperUrl->expiration_at = Carbon::now()->addDays();
         $scraperUrl->save();
-        return true;
+
+        $xml->registerXPathNamespace('sm', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+        // sitemapindex → sitemap linkeket adunk vissza
+        if ($xml->xpath('//sm:sitemap')) {
+            $links =  collect($xml->xpath('//sm:sitemap/sm:loc'))
+                ->map(fn($loc) => (string) $loc)
+                ->all();
+
+            $this->storeLinks($links, $scraperUrl, 'sitemap', 0);
+            return true;
+        }
+
+        // urlset → oldal linkeket adunk vissza
+        if ($xml->xpath('//sm:url')) {
+            $links = collect($xml->xpath('//sm:url/sm:loc'))
+                ->map(fn($loc) => (string) $loc)
+                ->all();
+            $this->storeLinks($links, $scraperUrl, 'page', 1);
+            return true;
+        }
+        return false;
     }
 
     /**************************************************************************************/
@@ -495,7 +505,11 @@ class ScraperService
         if (is_string($urls)) {
             $result = $this->client->get($urls);
             if($result->getStatusCode() === 200) {
-                return $result->getBody()->getContents();
+                $content = $result->getBody()->getContents();
+                if (str_ends_with($urls, '.gz')) {
+                    return @gzdecode($content);
+                }
+                return $content;
             }
             return null;
         }
@@ -511,7 +525,11 @@ class ScraperService
         $htmlParsers = [];
         foreach ($results as $url => $result) {
             if ($result['state'] === 'fulfilled') {
-                $htmlParsers[$url] = $result['value']->getBody()->getContents();
+                $content = $result['value']->getBody()->getContents();
+                if (str_ends_with($url, '.gz')) {
+                    $content = @gzdecode($content);
+                }
+                $htmlParsers[$url] = $content;
             } else {
                 $htmlParsers[$url] = null;
             }

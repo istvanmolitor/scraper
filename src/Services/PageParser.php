@@ -43,11 +43,18 @@ abstract class PageParser
     public function getLinks(Crawler $crawler): array
     {
         $baseUrl = new Url($crawler->getBaseHref());
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'];
 
-        $links = $crawler->filter('a[href]')->each(function (Crawler $node) use ($baseUrl){
+        $links = $crawler->filter('a[href]')->each(function (Crawler $node) use ($baseUrl, $imageExtensions){
             try {
                 $url = new Url($node->link()->getUri());
-                return (string)$this->prepareUrl($baseUrl, $url);
+                $preparedUrl = $this->prepareUrl($baseUrl, $url);
+
+                if ($preparedUrl && in_array($preparedUrl->getExtension(), $imageExtensions)) {
+                    return null;
+                }
+
+                return (string)$preparedUrl;
             } catch (\Exception $e) {
                 return null;
             }
