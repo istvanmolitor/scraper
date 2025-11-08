@@ -78,6 +78,10 @@ class ScraperResource extends Resource
                 IconColumn::make('enabled')->boolean()->label(__('scraper::messages.scraper.table.enabled')),
                 TextColumn::make('name')->label(__('scraper::messages.scraper.table.name'))->searchable()->sortable(),
                 TextColumn::make('base_url')->label(__('scraper::messages.scraper.table.base_url'))->searchable()->wrap(),
+                TextColumn::make('scraper_urls_count')
+                    ->label(__('scraper::messages.scraper.table.urls_count'))
+                    ->counts('scraperUrls')
+                    ->sortable(),
             ])
             ->filters([
             ])

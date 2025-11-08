@@ -20,6 +20,7 @@ return [
             'enabled' => 'Engedélyezve',
             'name' => 'Név',
             'base_url' => 'Alap URL',
+            'urls_count' => 'URL-ek száma',
         ],
         'actions' => [
             'links' => 'Linkek',
