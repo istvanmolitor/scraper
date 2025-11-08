@@ -10,7 +10,9 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "istvanmolitor/user": "*@dev"
+    },
     "autoload": {
         "psr-4": {
             "Molitor\\Scraper\\": "src/"
