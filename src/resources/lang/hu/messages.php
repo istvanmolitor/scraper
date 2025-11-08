@@ -14,6 +14,7 @@ return [
             'robots_txt' => 'Robots.txt tiszteletben tartása',
             'follow_links' => 'Hivatkozások követése',
             'chunk_size' => 'Csomagméret',
+            'url' => 'Url',
         ],
         'table' => [
             'enabled' => 'Engedélyezve',
@@ -49,6 +50,7 @@ return [
             'title' => 'Scraper URL-ek',
             'create' => 'URL létrehozása',
             'edit' => 'URL szerkesztése',
+            'export' => 'Lista letöltése',
         ],
         'bulk' => [
             'download' => 'Letöltés',

@@ -28,6 +28,15 @@ class ListScraperUrls extends ListRecords
                     $scraperId = request()->integer('scraper_id');
                     return ScraperUrlResource::getUrl('create', $scraperId ? ['scraper_id' => $scraperId] : []);
                 }),
+            \Filament\Actions\Action::make('export')
+                ->label(__('scraper::messages.scraper_url.pages.export'))
+                ->icon('heroicon-o-arrow-down-tray')
+                ->url(function () {
+                    $scraperId = request()->integer('scraper_id');
+                    $params = $scraperId ? ['scraper_id' => $scraperId] : [];
+                    return route('scraper.scraper_urls.export', $params);
+                })
+                ->openUrlInNewTab(),
         ];
     }
 

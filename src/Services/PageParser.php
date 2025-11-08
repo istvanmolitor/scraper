@@ -6,201 +6,55 @@ namespace Molitor\Scraper\Services;
 
 use Carbon\Carbon;
 use Molitor\HtmlParser\HtmlParser;
+use Symfony\Component\DomCrawler\Crawler;
 
 abstract class PageParser
 {
-    protected ?Url $baseUrl = null;
-
-    protected ?Url $url = null;
-    protected ?HtmlParser $html = null;
-
-    protected ?string $type = null;
-    protected ?int $priority = null;
-    protected ?Carbon $expiration = null;
-    protected ?array $data = null;
-
-    public function __construct(Url $baseUrl)
-    {
-        $this->setBaseUrl($baseUrl);
-    }
-
-    abstract public function makeType(): ?string;
-
-    abstract public function makeData(): ?array;
-
-    abstract public function makeExpiration(): ?Carbon;
-
-    abstract public function makePriority(): int;
-
-    public function delay(): void
-    {
-
-    }
-
-    /*********************************************************/
-
-    public function reset(): void
-    {
-        $this->url = null;
-        $this->html = null;
-        $this->type = null;
-        $this->priority = null;
-        $this->expiration = null;
-        $this->data = null;
-    }
-
-    public function setUrl(?Url $url): void
-    {
-        if ($url === null) {
-            $this->url = null;
-        }
-        else {
-            $this->url = $this->prepareUrl($url);
-        }
-    }
-
-    public function getUrl(): ?Url {
-        return $this->url;
-    }
-
-    public function setLink(?string $link): void
-    {
-        if ($link) {
-            $this->setUrl(new Url($link));
-        } else {
-            $this->url = null;
-        }
-    }
-
-    public function getLink(): ?string {
-        return $this->url ? (string)$this->url : null;
-    }
-
-    public function setHtml(?HtmlParser $html): void
-    {
-        $this->html = $html;
-    }
-
-    public function getHtml(): ?HtmlParser {
-        return $this->html;
-    }
-
-    public function setBaseUrl(Url $url): void
-    {
-        $this->baseUrl = $url;
-    }
-
-    public function getBaseUrl(): ?Url {
-        return $this->baseUrl;
-    }
-
-    public function setType(?string $type): void
-    {
-        $this->type = $type;
-    }
-
-    public function getType(): ?string
-    {
-        return $this->type;
-    }
-
-    public function getData(): ?array
-    {
-        return $this->data;
-    }
-
-    public function setPriority(?int $priority): void
-    {
-        $this->priority = $priority;
-    }
-
-    public function getPriority(): ?int
-    {
-        return $this->priority;
-    }
-
-    public function setExpiration(?Carbon $expiration): void
-    {
-        $this->expiration = $expiration;
-    }
-
-    public function getExpiration(): ?Carbon
-    {
-        return $this->expiration;
-    }
-
-    /*********************************************************/
-
-    public function isValidUrl(Url $url): bool
+    public function isValidUrl(Url $baseUrl, Url $url): bool
     {
         $host = $url->getHost();
         if ($host == '') {
             return true;
         }
 
-        if ($host == $this->baseUrl->getHost()) {
+        if ($host == $baseUrl->getHost()) {
             return true;
         }
 
         return false;
     }
 
-    public function prepareUrl(Url $url): ?Url
+    public function prepareUrl(Url $baseUrl, Url $url): ?Url
     {
-        if ($this->isValidUrl($url)) {
-            return Url::prepare($this->baseUrl, $url);
+        if ($this->isValidUrl($baseUrl, $url)) {
+            return Url::prepare($baseUrl, $url);
         }
         return null;
     }
 
-    public function prepareLink(string $link): ?string
+    abstract public function getType(Crawler $crawler): string;
+
+    abstract public function getPriority(Crawler $crawler, string $type): int;
+
+    abstract function getExpiration(Crawler $crawler, string $type, int $priority): Carbon;
+
+    abstract public function getData(Crawler $crawler, string $type): array;
+
+    public function getLinks(Crawler $crawler): array
     {
-        $prepareUrl = $this->prepareUrl(new Url($link));
-        return $prepareUrl ? (string)$prepareUrl : null;
-    }
+        $baseUrl = new Url($crawler->getBaseHref());
 
-    /*********************************************************/
-
-    public function parseType(?string $defaultType): void
-    {
-        $type = $this->makeType();
-        $this->type = $type ?: $defaultType;
-    }
-
-    public function parsePriority(?int $defaultPriority): void
-    {
-        $priority = $this->makePriority();
-        $this->priority = $priority ?: $defaultPriority;
-    }
-
-    public function parseExpiration(?Carbon $defaultExpiration): void
-    {
-        $expiration = $this->makeExpiration();
-        $this->expiration = $expiration ?: $defaultExpiration;
-    }
-
-    public function parseData(?array $defaultData): void
-    {
-        $data = $this->makeData();
-        $this->data = $data ?: $defaultData;
-    }
-
-    public function getLinks(): array
-    {
-        if(!$this->html) {
-            return [];
-        }
-
-        $links = $this->html->findLinks();
-        $validLinks = [];
-        foreach($links as $link) {
-            if($this->isValidUrl(new Url($link))) {
-                $validLinks[] = $link;
+        $links = $crawler->filter('a[href]')->each(function (Crawler $node) use ($baseUrl){
+            try {
+                $url = new Url($node->link()->getUri());
+                return (string)$this->prepareUrl($baseUrl, $url);
+            } catch (\Exception $e) {
+                return null;
             }
-        }
-        return $validLinks;
-    }
+        });
 
+        return array_values(array_unique(array_filter($links)));
+    }
 
     public function toArray(): array
     {

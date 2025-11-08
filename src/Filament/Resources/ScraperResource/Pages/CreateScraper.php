@@ -7,6 +7,7 @@ use Molitor\Scraper\Filament\Resources\ScraperResource;
 use Molitor\Scraper\Filament\Resources\ScraperUrlResource;
 use Molitor\Scraper\Models\Scraper;
 use Molitor\Scraper\Services\ScraperService;
+use Molitor\Scraper\Services\Url;
 
 class CreateScraper extends CreateRecord
 {
@@ -17,12 +18,6 @@ class CreateScraper extends CreateRecord
         return __('scraper::messages.scraper.pages.create');
     }
 
-    public function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['base_url'] = parse_url($data['base_url'], PHP_URL_SCHEME) . '://' . parse_url($data['base_url'], PHP_URL_HOST);
-        return $data;
-    }
-
     public function afterCreate()
     {
         /** @var Scraper $scraper */
@@ -30,7 +25,7 @@ class CreateScraper extends CreateRecord
 
         /** @var ScraperService $scraperService */
         $scraperService = app(ScraperService::class);
-        $scraperService->addBaseLinks($scraper);
+        $scraperService->updateBaseLinks($scraper);
     }
 
     protected function getRedirectUrl(): string

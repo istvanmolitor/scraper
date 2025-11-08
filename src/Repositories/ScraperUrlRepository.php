@@ -137,17 +137,4 @@ class ScraperUrlRepository implements ScraperUrlRepositoryInterface
         }
         return $this->scraperUrl->create($data);
     }
-
-    public function getRobotsTxt(Scraper $scraper): ScraperUrl
-    {
-        $scraperUrl = $this->scraperUrl->where('scraper_id', $scraper->id)->where('type', 'robots')->find();
-        if (!$scraperUrl) {
-            $scraperUrl = $this->save($scraper, [
-                'type' => 'robots',
-                'url' => $scraper->base_url . '/robots.txt',
-                'priority' => 0,
-            ]);
-        }
-        return $scraperUrl;
-    }
 }

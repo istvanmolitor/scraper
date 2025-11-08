@@ -3,6 +3,7 @@
 namespace Molitor\Scraper\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScraperUrl extends Model
 {
@@ -24,7 +25,14 @@ class ScraperUrl extends Model
         'meta_data' => 'array',
     ];
 
-    public function scraper()
+    protected static function booted(): void
+    {
+        static::saving(function (ScraperUrl $scraperUrl) {
+            $scraperUrl->hash = md5($scraperUrl->url);
+        });
+    }
+
+    public function scraper(): BelongsTo
     {
         return $this->belongsTo(Scraper::class, 'scraper_id');
     }

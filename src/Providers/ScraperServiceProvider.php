@@ -22,6 +22,9 @@ class ScraperServiceProvider extends ServiceProvider
         // Load package translations
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'scraper');
 
+        // Load package routes
+        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+
         // Publish config (legacy tag maintained)
         $this->publishes([
             __DIR__ . '/../config/scraper.php' => config_path('scraper.php'),

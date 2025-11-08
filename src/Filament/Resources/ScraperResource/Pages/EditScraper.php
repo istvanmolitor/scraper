@@ -8,6 +8,7 @@ use Filament\Resources\Pages\EditRecord;
 use Molitor\Scraper\Filament\Resources\ScraperResource;
 use Molitor\Scraper\Filament\Resources\ScraperUrlResource;
 use Molitor\Scraper\Models\Scraper;
+use Molitor\Scraper\Services\ScraperService;
 
 class EditScraper extends EditRecord
 {
@@ -35,5 +36,15 @@ class EditScraper extends EditRecord
         return ScraperUrlResource::getUrl('index', [
             'scraper_id' => $scraper->id,
         ]);
+    }
+
+    public function afterSave()
+    {
+        /** @var Scraper $scraper */
+        $scraper = $this->record;
+
+        /** @var ScraperService $scraperService */
+        $scraperService = app(ScraperService::class);
+        $scraperService->updateBaseLinks($scraper);
     }
 }

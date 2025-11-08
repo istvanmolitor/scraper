@@ -17,14 +17,13 @@ use Molitor\Scraper\Models\Scraper;
 use Molitor\Scraper\Models\ScraperUrl;
 use Molitor\Scraper\Repositories\ScraperRepositoryInterface;
 use Molitor\Scraper\Repositories\ScraperUrlRepositoryInterface;
+use Symfony\Component\DomCrawler\Crawler;
 
 class ScraperService
 {
     private ?Command $command = null;
 
     private Client $client;
-
-    private array $tasks = [];
 
     private array $domainMap = [];
 
@@ -66,7 +65,7 @@ class ScraperService
     protected function initScraper(Scraper $scraper): void
     {
         $domain = $this->getDomainByScraper($scraper);
-        $parser = new SimplePageParser(new Url($domain));
+        $parser = new SimplePageParser();
 
         $this->scraperIdMap[$scraper->id] = [
             'domain' => $domain,
@@ -233,11 +232,11 @@ class ScraperService
         $scraper = $this->scraperRepository->create($name, $baseUrl, $robotsTxt, $followLinks, $enabled);
 
         $this->init();
-        $this->addBaseLinks($scraper);
+        $this->updateBaseLinks($scraper);
         return $scraper;
     }
 
-    public function addBaseLinks(Scraper $scraper): void
+    public function updateBaseLinks(Scraper $scraper): void
     {
         if($scraper->robots_txt) {
             $this->storeRobotsTxt($scraper);
@@ -253,22 +252,23 @@ class ScraperService
      * @param ScraperUrl $scraperUrl
      * @return void
      */
-    public function downloadScraperUrl(ScraperUrl $scraperUrl): void
+    public function downloadScraperUrl(ScraperUrl $scraperUrl): bool
     {
         switch ($scraperUrl->type) {
             case 'robotstxt':
-                $this->downloadRobotsTxt($scraperUrl);
+                $result = $this->downloadRobotsTxt($scraperUrl);
                 break;
             case 'sitemap':
-                $this->downloadSitemap($scraperUrl);
+                $result = $this->downloadSitemap($scraperUrl);
                 break;
             default:
-                $this->downloadPage($scraperUrl);
+                $result = $this->downloadHtmlPage($scraperUrl);
         }
         $scraperUrl->touch('downloaded_at');
+        return $result;
     }
 
-    private function downloadPage(ScraperUrl $scraperUrl): void
+    private function downloadHtmlPage(ScraperUrl $scraperUrl): bool
     {
         $result = $this->client->get($scraperUrl->url);
         $status = $result->getStatusCode();
@@ -280,40 +280,44 @@ class ScraperService
         ]);
 
         if($status !== 200) {
-            return;
+            return false;
         }
 
         $pageContent = $result->getBody()->getContents();
         if(!$pageContent) {
-            return;
+            return false;
         }
 
-        $html = new HtmlParser($pageContent);
+        $crawler = new Crawler($pageContent, $scraperUrl->url);
 
         $scraper = $this->getScraperByScraperUrl($scraperUrl);
 
         $pageParser = $this->getPageParserByScraper($scraper);
-        $pageParser->reset();
-        $pageParser->setLink($scraperUrl->url);
-        $pageParser->setHtml($html);
 
-        $pageParser->parseType('page');
-        $pageParser->parsePriority(1);
-        $pageParser->parseExpiration((new Carbon())->addMonths(1));
-        $pageParser->parseData(null);
+        $type = $pageParser->getType($crawler);
+        $priority = $pageParser->getPriority($crawler, $type);
+        $expiration = $pageParser->getExpiration($crawler, $type, $priority);
+        $data = $pageParser->getData($crawler, $type);
 
         $scraperUrl->fill([
-            'type' => $pageParser->getType(),
-            'priority' => $pageParser->getPriority(),
-            'expiration_at' => $pageParser->getExpiration(),
+            'type' => $type,
+            'priority' => $priority,
+            'expiration_at' => $expiration,
         ]);
         $scraperUrl->save();
 
-        event(new ScraperUrlUpdateEvent($scraperUrl, $pageParser->getData()));
+        event(new ScraperUrlUpdateEvent($scraperUrl, $data));
 
         if ($scraper->follow_links) {
-            $this->storeLinks($html->findLinks(), $scraperUrl, 'page', 1);
+            $this->storeLinks($pageParser->getLinks($crawler), $scraperUrl, 'page', 1);
         }
+
+        return true;
+    }
+
+    public function storeDomain(): ScraperUrl|null
+    {
+
     }
 
     /*Robots.txt*************************************************************************************/
@@ -323,7 +327,7 @@ class ScraperService
         return $this->getDomainByScraper($scraper) . '/robots.txt';
     }
 
-    public function getRobotsTxtByScraper(Scraper $scraper): ?ScraperUrl
+    public function getRobotsTxtByScraper(Scraper $scraper): ScraperUrl|null
     {
         return $this->scraperUrlRepository->getScraperUrl($scraper, $this->getRobotsTxtLinkByScraper($scraper));
     }
@@ -340,7 +344,7 @@ class ScraperService
         return $this->getRobotsTxtByScraper($scraper);
     }
 
-    private function downloadRobotsTxt(ScraperUrl $scraperUrl): void
+    private function downloadRobotsTxt(ScraperUrl $scraperUrl): bool
     {
         $robotsTxtContent = $this->downloadContent($scraperUrl->url);
 
@@ -363,11 +367,12 @@ class ScraperService
 
         $scraperUrl->expiration_at = Carbon::now()->addDays();
         $scraperUrl->save();
+        return true;
     }
 
     /*Sitemap*************************************************************************************/
 
-    private function downloadSitemap(ScraperUrl $scraperUrl): void
+    private function downloadSitemap(ScraperUrl $scraperUrl): bool
     {
         $sitemapContent = $this->downloadContent($scraperUrl->url);
         $xml = simplexml_load_string($sitemapContent, "SimpleXMLElement", LIBXML_NOCDATA);
@@ -390,6 +395,7 @@ class ScraperService
 
         $scraperUrl->expiration_at = Carbon::now()->addDays();
         $scraperUrl->save();
+        return true;
     }
 
     /**************************************************************************************/
@@ -423,13 +429,11 @@ class ScraperService
         $domain = $this->getDomainByUrl($url);
         $scraper = $this->getScraperByLink($domain);
         $parser = $this->getPageParserByDomain($scraper);
-        $parser->reset();
-        $parser->prepareLink($link);
-        $this->storeLinks([$link], $scraper, $parser->getType(), $parser->getPriority());
+        $this->storeLinks([(string)$url], $scraper, null, 1);
         return $this->getScraperUrlByLink($link);
     }
 
-    protected function storeLinks(array $links, Scraper|ScraperUrl $parent, string $type = null, int $priority = null): void
+    protected function storeLinks(array $links, Scraper|ScraperUrl $parent, string|null $type, int $priority = null): void
     {
         if($parent instanceof Scraper) {
             $scraperId = $parent->id;
@@ -442,19 +446,13 @@ class ScraperService
 
         $pageParser = $this->getPageParserByScraperId($scraperId);
         foreach ($links as $link) {
-            $pageParser->reset();
-            $pageParser->setLink($link);
-            $preparedLink = $pageParser->getLink();
-
-            if($preparedLink) {
-                $this->addRegisteredLink(
-                    $scraperId,
-                    $preparedLink,
-                    $type,
-                    $priority,
-                    $parentId
-                );
-            }
+            $this->addRegisteredLink(
+                $scraperId,
+                $link,
+                $type,
+                $priority,
+                $parentId
+            );
         }
         $this->storeRegisteredLinks();
     }

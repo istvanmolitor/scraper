@@ -23,6 +23,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Molitor\Scraper\Filament\Resources\ScraperUrlResource\Pages;
 use Molitor\Scraper\Models\ScraperUrl;
+use Molitor\Scraper\Rules\ScraperUrlRule;
 use Molitor\Scraper\Services\ScraperService;
 
 class ScraperUrlResource extends Resource
@@ -54,35 +55,28 @@ class ScraperUrlResource extends Resource
                     ->disabledOn('edit')
                     ->dehydrated(fn (string $operation) => $operation !== 'edit')
                     ->required(),
-                TextInput::make('type')
-                    ->label(__('scraper::messages.scraper_url.fields.type'))
-                    ->maxLength(50),
             ]),
+            TextInput::make('url')
+                ->label(__('scraper::messages.scraper.fields.url'))
+                ->url()
+                ->unique()
+                ->maxLength(255)
+                ->required()
+                ->disabledOn('edit')
+                ->rules([
+                    fn ($get) => new ScraperUrlRule($get('scraper_id')),
+                ]),
             Grid::make(3)->schema([
                 TextInput::make('priority')
                     ->label(__('scraper::messages.scraper_url.fields.priority'))
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(100000),
-                TextInput::make('parent_id')
-                    ->label(__('scraper::messages.scraper_url.fields.parent_id'))
-                    ->numeric(),
-                DateTimePicker::make('downloaded_at')
-                    ->label(__('scraper::messages.scraper_url.fields.downloaded_at'))
-                    ->native(false)
-                    ->seconds(false),
-            ]),
-            Grid::make(2)->schema([
                 DateTimePicker::make('expiration_at')
                     ->label(__('scraper::messages.scraper_url.fields.expiration_at'))
                     ->native(false)
                     ->seconds(false),
-                KeyValue::make('meta_data')
-                    ->label(__('scraper::messages.scraper_url.fields.meta_data'))
-                    ->keyLabel(__('scraper::messages.scraper_url.fields.meta_key'))
-                    ->valueLabel(__('scraper::messages.scraper_url.fields.meta_value'))
-                    ->columnSpanFull(),
-            ])->columns(2),
+            ]),
         ])->columns(1);
     }
 

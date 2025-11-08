@@ -21,7 +21,10 @@ return new class extends Migration
                 $table->id();
 
                 $table->unsignedBigInteger('scraper_id');
-                $table->foreign('scraper_id')->references('id')->on('scrapers');
+                $table->foreign('scraper_id')
+                    ->references('id')
+                    ->on('scrapers')
+                    ->onDelete('cascade');
 
                 $table->string('type')->nullable();
                 $table->string('hash', 32)->index();

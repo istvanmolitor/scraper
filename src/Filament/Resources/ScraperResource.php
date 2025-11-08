@@ -19,6 +19,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Gate;
 use Molitor\Scraper\Filament\Resources\ScraperResource\Pages;
 use Molitor\Scraper\Models\Scraper;
+use Molitor\Scraper\Rules\DomainRule;
 
 class ScraperResource extends Resource
 {
@@ -52,9 +53,11 @@ class ScraperResource extends Resource
             TextInput::make('base_url')
                 ->label(__('scraper::messages.scraper.fields.base_url'))
                 ->url()
+                ->rules([new DomainRule()])
                 ->maxLength(255)
-                ->required(),
-
+                ->required()
+                ->unique()
+                ->disabledOn('edit'),
             Toggle::make('robots_txt')->label(__('scraper::messages.scraper.fields.robots_txt'))->default(true),
             Toggle::make('follow_links')->label(__('scraper::messages.scraper.fields.follow_links'))->default(false),
 

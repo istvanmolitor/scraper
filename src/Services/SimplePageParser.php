@@ -3,27 +3,29 @@
 namespace Molitor\Scraper\Services;
 
 use Carbon\Carbon;
+use Symfony\Component\DomCrawler\Crawler;
 
 class SimplePageParser extends PageParser
 {
-
-    public function makeType(): ?string
+    public function getType(Crawler $crawler): string
     {
         return 'page';
     }
 
-    public function makeData(): ?array
+    public function getPriority(Crawler $crawler, string $type): int
     {
-        return null;
+        return 1;
     }
 
-    public function makeExpiration(): ?Carbon
+    function getExpiration(Crawler $crawler, string $type, int $priority): Carbon
     {
         return Carbon::now()->addMonths(1);
     }
 
-    public function makePriority(): int
+    public function getData(Crawler $crawler, string $type): array
     {
-        return 1;
+        return [
+            'title' => $crawler->filter('title')->text(),
+        ];
     }
 }
