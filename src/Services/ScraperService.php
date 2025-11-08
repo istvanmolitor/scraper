@@ -378,7 +378,7 @@ class ScraperService
         $sitemapContent = $this->downloadContent($scraperUrl->url);
         $xml = simplexml_load_string($sitemapContent, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-        if (! $xml) {
+        if (!$xml) {
             return false;
         }
 
@@ -387,7 +387,6 @@ class ScraperService
 
         $xml->registerXPathNamespace('sm', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
-        // sitemapindex → sitemap linkeket adunk vissza
         if ($xml->xpath('//sm:sitemap')) {
             $links =  collect($xml->xpath('//sm:sitemap/sm:loc'))
                 ->map(fn($loc) => (string) $loc)
@@ -397,7 +396,6 @@ class ScraperService
             return true;
         }
 
-        // urlset → oldal linkeket adunk vissza
         if ($xml->xpath('//sm:url')) {
             $links = collect($xml->xpath('//sm:url/sm:loc'))
                 ->map(fn($loc) => (string) $loc)

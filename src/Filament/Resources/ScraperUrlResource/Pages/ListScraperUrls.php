@@ -13,9 +13,17 @@ class ListScraperUrls extends ListRecords
 {
     protected static string $resource = ScraperUrlResource::class;
 
+    public int|null $scraperId = null;
+
     public function getTitle(): string
     {
         return __('scraper::messages.scraper_url.pages.title');
+    }
+
+    public function mount(): void
+    {
+        parent::mount();
+        $this->scraperId = request()->integer('scraper_id');
     }
 
     protected function getHeaderActions(): array
@@ -44,7 +52,7 @@ class ListScraperUrls extends ListRecords
     {
         $query = parent::getTableQuery();
         $scraperId = request()->integer('scraper_id');
-        if ($scraperId) {
+        if ($scraperId > 0) {
             $query->where('scraper_id', $scraperId);
         }
         return $query;
@@ -52,6 +60,13 @@ class ListScraperUrls extends ListRecords
 
     public function table(Table $table): Table
     {
-        return ScraperUrlResource::table($table);
+        $table = ScraperUrlResource::table($table);
+        if ($this->scraperId) {
+            $table->modifyQueryUsing(function ($query) {
+                $query->where('scraper_id', $this->scraperId);
+            });
+        }
+
+        return $table;
     }
 }
