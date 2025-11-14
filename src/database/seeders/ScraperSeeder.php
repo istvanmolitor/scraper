@@ -4,6 +4,9 @@ namespace Molitor\Scraper\database\seeders;
 
 use Illuminate\Database\Seeder;
 use Molitor\Scraper\Services\ScraperService;
+use Molitor\Scraper\Services\ScraperWorkerService;
+use Molitor\Setting\Repositories\SettingGroupRepositoryInterface;
+use Molitor\Setting\Repositories\SettingRepositoryInterface;
 use Molitor\User\Exceptions\PermissionException;
 use Molitor\User\Services\AclManagementService;
 

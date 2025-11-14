@@ -32,47 +32,24 @@ abstract class PageParser
         return null;
     }
 
-    abstract public function getType(Crawler $crawler): string;
+    abstract public function getType(HtmlParser $html): string;
 
-    abstract public function getPriority(Crawler $crawler, string $type): int;
+    abstract public function getPriority(HtmlParser $html, string $type): int;
 
-    abstract function getExpiration(Crawler $crawler, string $type, int $priority): Carbon;
+    abstract function getExpiration(HtmlParser $html, string $type, int $priority): Carbon;
 
-    abstract public function getData(Crawler $crawler, string $type): array;
+    abstract public function getData(HtmlParser $html, string $type): array;
 
-    public function getLinks(Crawler $crawler): array
+
+
+    public function getLinks(HtmlParser $html, Url $baseUrl): array
     {
-        $baseUrl = new Url($crawler->getBaseHref());
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'];
-
-        $links = $crawler->filter('a[href]')->each(function (Crawler $node) use ($baseUrl, $imageExtensions){
-            try {
-                $url = new Url($node->link()->getUri());
-                $preparedUrl = $this->prepareUrl($baseUrl, $url);
-
-                if ($preparedUrl && in_array($preparedUrl->getExtension(), $imageExtensions)) {
-                    return null;
-                }
-
-                return (string)$preparedUrl;
-            } catch (\Exception $e) {
-                return null;
-            }
+        $links = $html->getLinks()->map(function (HtmlParser $link) {
+            return $link->getAttribute('href');
         });
 
-        return array_values(array_unique(array_filter($links)));
-    }
+        dd($links);
 
-    public function toArray(): array
-    {
-        return [
-            'url' => $this->url,
-            'html' => $this->html,
-            'base_url' => $this->baseUrl,
-            'type' => $this->type,
-            'priority' => $this->priority,
-            'expiration' => $this->expiration,
-            'data' => $this->data,
-        ];
+        return array_values(array_unique(array_filter($links)));
     }
 }

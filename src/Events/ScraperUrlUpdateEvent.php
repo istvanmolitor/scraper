@@ -11,18 +11,16 @@ class ScraperUrlUpdateEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public ScraperUrl $scraperUrl;
-
-    public ?array $data;
-
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(ScraperUrl $scraperUrl, ?array $data)
+    public function __construct(
+        public ScraperUrl $scraperUrl,
+        public array $data
+    )
     {
-        $this->scraperUrl = $scraperUrl;
-        $this->data = $data;
+
     }
 }

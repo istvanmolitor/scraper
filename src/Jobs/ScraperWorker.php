@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Molitor\Scraper\Services\ScraperService;
+use Molitor\Scraper\Services\ScraperWorkerService;
 
 class ScraperWorker implements ShouldQueue
 {
@@ -30,11 +30,9 @@ class ScraperWorker implements ShouldQueue
      */
     public function handle()
     {
-        $service = app(ScraperService::class);
-        if ($service->isEnabled()) {
-            $service->run();
-            ScraperWorker::dispatch()->delay(now()->addMinutes(1));
-        }
+        /** @var ScraperWorkerService $service */
+        $service = app(ScraperWorkerService::class);
+        $service->handleWork();
     }
 }
 

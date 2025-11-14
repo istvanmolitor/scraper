@@ -7,7 +7,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Molitor\HtmlParser\HtmlParser;
 use Molitor\Scraper\Exceptions\InvalidDomain;
@@ -289,16 +288,17 @@ class ScraperService
             return false;
         }
 
-        $crawler = new Crawler($pageContent, $scraperUrl->url);
+        $baseUrl = new Url($scraperUrl->url);
+        $html = new HtmlParser($pageContent);
 
         $scraper = $this->getScraperByScraperUrl($scraperUrl);
 
         $pageParser = $this->getPageParserByScraper($scraper);
 
-        $type = $pageParser->getType($crawler);
-        $priority = $pageParser->getPriority($crawler, $type);
-        $expiration = $pageParser->getExpiration($crawler, $type, $priority);
-        $data = $pageParser->getData($crawler, $type);
+        $type = $pageParser->getType($html);
+        $priority = $pageParser->getPriority($html, $type);
+        $expiration = $pageParser->getExpiration($html, $type, $priority);
+        $data = $pageParser->getData($html, $type);
 
         $scraperUrl->fill([
             'type' => $type,
@@ -310,7 +310,7 @@ class ScraperService
         event(new ScraperUrlUpdateEvent($scraperUrl, $data));
 
         if ($scraper->follow_links) {
-            $this->storeLinks($pageParser->getLinks($crawler), $scraperUrl, 'page', 1);
+            $this->storeLinks($pageParser->getLinks($html, $baseUrl), $scraperUrl, 'page', 1);
         }
 
         return true;
@@ -541,5 +541,10 @@ class ScraperService
         if($parser) {
             $parser->delay();
         }
+    }
+
+    public function work(int $limit): void
+    {
+        
     }
 }

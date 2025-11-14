@@ -12,12 +12,13 @@ Weboldalak strukturált bejárása és HTML oldalak letöltése, linkek felderí
 ### Provider regisztrálása
 
 config/app.php
+
 ```php
 'providers' => ServiceProvider::defaultProviders()->merge([
     /*
     * Package Service Providers...
     */
-    \Molitor\Scraper\Providers\ScraperServiceProvider::class,
+    \Molitor\Scraper\Providers\ProductScraperServiceProvider::class,
 ])->toArray(),
 ```
 
