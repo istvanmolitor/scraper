@@ -32,4 +32,11 @@ interface ScraperUrlRepositoryInterface
     public function getTasksByScraper(Scraper $scraper): LazyCollection;
 
     public function getById(int $id): ?ScraperUrl;
+
+    // Global aggregations
+    public function getNumAllUrls(): int;
+
+    public function getNumDownloadedUrls(): int;
+
+    public function getNumFreshUrls(): int;
 }

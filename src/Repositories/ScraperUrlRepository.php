@@ -137,4 +137,26 @@ class ScraperUrlRepository implements ScraperUrlRepositoryInterface
         }
         return $this->scraperUrl->create($data);
     }
+
+    // Global aggregations
+    public function getNumAllUrls(): int
+    {
+        return $this->scraperUrl->count();
+    }
+
+    public function getNumDownloadedUrls(): int
+    {
+        return $this->scraperUrl->whereNotNull('downloaded_at')->count();
+    }
+
+    public function getNumFreshUrls(): int
+    {
+        return $this->scraperUrl
+            ->whereNotNull('downloaded_at')
+            ->where(function ($q) {
+                $q->whereNull('expiration_at')
+                    ->orWhere('expiration_at', '>', Carbon::now());
+            })
+            ->count();
+    }
 }

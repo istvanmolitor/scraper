@@ -3,11 +3,14 @@
 namespace Molitor\Scraper\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Molitor\Scraper\Console\Commands\ScraperCreate;
 use Molitor\Scraper\Console\Commands\ScraperDownload;
 use Molitor\Scraper\Console\Commands\ScraperInfo;
 use Molitor\Scraper\Console\Commands\ScraperRun;
 use Molitor\Scraper\Console\Commands\ScraperWork;
+use Molitor\Scraper\Filament\Pages\ScraperDashboard;
+use Molitor\Scraper\Filament\Widgets\ScraperLinksChart;
 use Molitor\Scraper\Repositories\ScraperRepository;
 use Molitor\Scraper\Repositories\ScraperRepositoryInterface;
 use Molitor\Scraper\Repositories\ScraperUrlRepository;
@@ -38,6 +41,10 @@ class ScraperServiceProvider extends ServiceProvider
                 ScraperWork::class,
             ]);
         }
+
+        // Register Livewire components for package Filament classes
+        Livewire::component('molitor.scraper.filament.widgets.scraper-links-chart', ScraperLinksChart::class);
+        Livewire::component('molitor.scraper.filament.pages.scraper-dashboard', ScraperDashboard::class);
 
         $this->app->make(SettingHandlerService::class)->register(ScraperSettingForm::class);
     }

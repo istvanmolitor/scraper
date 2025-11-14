@@ -4,6 +4,7 @@ return [
     'navigation' => [
         'group_tools' => 'Eszközök',
         'scrapers' => 'Scraperek',
+        'dashboard' => 'Vezérlőpult',
     ],
 
     'scraper' => [
@@ -11,7 +12,7 @@ return [
             'enabled' => 'Engedélyezve',
             'name' => 'Név',
             'base_url' => 'Alap URL',
-            'robots_txt' => 'Robots.txt tiszteletben tartása',
+            'robots_txt' => 'Robots.txt figyelembevétele',
             'follow_links' => 'Hivatkozások követése',
             'chunk_size' => 'Csomagméret',
             'url' => 'Url',
