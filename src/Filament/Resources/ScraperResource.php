@@ -23,6 +23,8 @@ class ScraperResource extends Resource
 
     protected static \BackedEnum|null|string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function getNavigationGroup(): string
     {
         return __('scraper::messages.navigation.group_tools');

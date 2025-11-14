@@ -3,7 +3,7 @@
 return [
     'navigation' => [
         'group_tools' => 'Eszközök',
-        'scrapers' => 'Scraperek',
+        'scrapers' => 'Scraper',
         'dashboard' => 'Vezérlőpult',
     ],
 
