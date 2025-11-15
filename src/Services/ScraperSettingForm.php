@@ -4,6 +4,7 @@ namespace Molitor\Scraper\Services;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Illuminate\Support\Facades\Gate;
 use Molitor\Setting\Services\SettingForm;
 
 class ScraperSettingForm extends SettingForm
@@ -16,6 +17,11 @@ class ScraperSettingForm extends SettingForm
     public function getLabel(): string
     {
         return 'Scraper';
+    }
+
+    public function canAccess(): bool
+    {
+        return parent::canAccess() && Gate::allows('acl', 'scraper');
     }
 
     public function getForm(): array
