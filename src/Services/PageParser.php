@@ -47,9 +47,6 @@ abstract class PageParser
         $links = $html->getLinks()->map(function (HtmlParser $link) {
             return $link->getAttribute('href');
         });
-
-        dd($links);
-
         return array_values(array_unique(array_filter($links)));
     }
 }
