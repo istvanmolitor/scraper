@@ -42,7 +42,6 @@ class ScraperServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Register Livewire components for package Filament classes
         Livewire::component('molitor.scraper.filament.widgets.scraper-links-chart', ScraperLinksChart::class);
         Livewire::component('molitor.scraper.filament.pages.scraper-dashboard', ScraperDashboard::class);
 
