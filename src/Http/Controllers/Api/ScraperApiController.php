@@ -11,6 +11,7 @@ use Molitor\Scraper\Http\Resources\ScraperResource;
 use Molitor\Scraper\Models\Scraper;
 use Molitor\Scraper\Repositories\ScraperRepositoryInterface;
 use Molitor\Scraper\Services\ScraperService;
+use Molitor\Scraper\Services\ScraperWorkerService;
 
 class ScraperApiController extends Controller
 {
@@ -61,6 +62,32 @@ class ScraperApiController extends Controller
                 'sort' => $sortField,
                 'direction' => $sortDirection,
             ],
+        ]);
+    }
+
+    public function dashboard(): JsonResponse
+    {
+        $scrapers = Scraper::query()
+            ->withCount('scraperUrls')
+            ->orderBy('name')
+            ->get();
+
+        $workerService = app(ScraperWorkerService::class);
+        $blockedScrapers = $scrapers->filter(static fn (Scraper $scraper): bool => $scraper->blocked !== null && $scraper->blocked->isFuture());
+        $activeScrapers = $scrapers->filter(static fn (Scraper $scraper): bool => $scraper->enabled && ($scraper->blocked === null || $scraper->blocked->isPast()));
+        $inactiveScrapers = $scrapers->filter(static fn (Scraper $scraper): bool => ! $scraper->enabled);
+
+        return response()->json([
+            'summary' => [
+                'total_scrapers' => $scrapers->count(),
+                'active_scrapers' => $activeScrapers->count(),
+                'inactive_scrapers' => $inactiveScrapers->count(),
+                'blocked_scrapers' => $blockedScrapers->count(),
+                'total_urls' => $scrapers->sum('scraper_urls_count'),
+                'worker_enabled' => (bool) $workerService->isEnabled(),
+                'worker_limit' => (int) $workerService->getLimit(),
+            ],
+            'data' => ScraperResource::collection($scrapers),
         ]);
     }
 

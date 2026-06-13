@@ -9,6 +9,7 @@ Route::prefix('admin/scraper')
     ->middleware(['api', 'auth:sanctum', 'permission:scraper'])
     ->name('scraper.')
     ->group(function (): void {
+        Route::get('scrapers/dashboard', [ScraperApiController::class, 'dashboard'])->name('scrapers.dashboard');
         Route::get('scrapers/create', [ScraperApiController::class, 'create'])->name('scrapers.create');
         Route::get('scrapers/{id}/edit', [ScraperApiController::class, 'edit'])->name('scrapers.edit');
         Route::resource('scrapers', ScraperApiController::class)->except(['create', 'edit']);

@@ -12,6 +12,8 @@ class ScraperResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $isBlocked = $this->blocked !== null && $this->blocked->isFuture();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -21,6 +23,8 @@ class ScraperResource extends JsonResource
             'follow_links' => (bool) $this->follow_links,
             'chunk_size' => $this->chunk_size,
             'blocked' => $this->blocked?->toDateTimeString(),
+            'is_blocked' => $isBlocked,
+            'status' => ! $this->enabled ? 'inactive' : ($isBlocked ? 'blocked' : 'active'),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
             'scraper_urls_count' => $this->whenCounted('scraperUrls'),
