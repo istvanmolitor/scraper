@@ -18,7 +18,7 @@ class UpdateScraperRequest extends FormRequest
      */
     public function rules(): array
     {
-        $scraperId = (int) $this->route('id');
+        $scraperId = (int) ($this->route('scraper') ?? $this->route('id'));
 
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('scrapers', 'name')->ignore($scraperId)],
