@@ -28,6 +28,7 @@ class ScraperResource extends JsonResource
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
             'scraper_urls_count' => $this->whenCounted('scraperUrls'),
+            'downloaded_urls_count' => (int) ($this->downloaded_urls_count ?? 0),
         ];
     }
 }

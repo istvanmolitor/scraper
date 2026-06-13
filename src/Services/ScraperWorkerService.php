@@ -7,6 +7,10 @@ use Molitor\Setting\Repositories\SettingRepositoryInterface;
 
 class ScraperWorkerService
 {
+    private const DEFAULT_WORKER_ENABLED = false;
+
+    private const DEFAULT_WORKER_LIMIT = 100;
+
     public function __construct(
         private SettingRepositoryInterface $settingRepository,
         private ScraperService $scraperService
@@ -20,7 +24,7 @@ class ScraperWorkerService
 
     public function isEnabled(): bool
     {
-        return $this->settingRepository->get(static::SCRAPER_WORKER_ENABLED);
+        return (bool) $this->settingRepository->get(static::SCRAPER_WORKER_ENABLED, self::DEFAULT_WORKER_ENABLED);
     }
 
     public function start(): void
@@ -36,7 +40,9 @@ class ScraperWorkerService
 
     public function getLimit(): int
     {
-        return $this->settingRepository->get(static::SCRAPER_LIMIT);
+        $limit = (int) $this->settingRepository->get(static::SCRAPER_LIMIT, self::DEFAULT_WORKER_LIMIT);
+
+        return max(1, $limit);
     }
 
     public function handleWork(): void

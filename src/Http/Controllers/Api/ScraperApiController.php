@@ -26,7 +26,10 @@ class ScraperApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Scraper::query()->withCount('scraperUrls');
+        $query = Scraper::query()->withCount([
+            'scraperUrls',
+            'scraperUrls as downloaded_urls_count' => static fn ($innerQuery) => $innerQuery->whereNotNull('downloaded_at'),
+        ]);
 
         if ($search = trim((string) $request->input('search', ''))) {
             $query->where(function ($innerQuery) use ($search): void {
@@ -68,7 +71,10 @@ class ScraperApiController extends Controller
     public function dashboard(): JsonResponse
     {
         $scrapers = Scraper::query()
-            ->withCount('scraperUrls')
+            ->withCount([
+                'scraperUrls',
+                'scraperUrls as downloaded_urls_count' => static fn ($innerQuery) => $innerQuery->whereNotNull('downloaded_at'),
+            ])
             ->orderBy('name')
             ->get();
 
@@ -130,7 +136,12 @@ class ScraperApiController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $scraper = Scraper::query()->withCount('scraperUrls')->findOrFail($id);
+        $scraper = Scraper::query()
+            ->withCount([
+                'scraperUrls',
+                'scraperUrls as downloaded_urls_count' => static fn ($innerQuery) => $innerQuery->whereNotNull('downloaded_at'),
+            ])
+            ->findOrFail($id);
 
         return response()->json([
             'data' => new ScraperResource($scraper),
@@ -139,7 +150,12 @@ class ScraperApiController extends Controller
 
     public function edit(int $id): JsonResponse
     {
-        $scraper = Scraper::query()->withCount('scraperUrls')->findOrFail($id);
+        $scraper = Scraper::query()
+            ->withCount([
+                'scraperUrls',
+                'scraperUrls as downloaded_urls_count' => static fn ($innerQuery) => $innerQuery->whereNotNull('downloaded_at'),
+            ])
+            ->findOrFail($id);
 
         return response()->json([
             'data' => new ScraperResource($scraper),
