@@ -24,8 +24,27 @@ class SimplePageParser extends PageParser
 
     public function getData(HtmlParser $html, string $type): array
     {
+        $metaData = $html->parseMetaData();
+        $image = $metaData['og:image']
+            ?? $metaData['twitter:image']
+            ?? $html->getImages()->getFirst()?->getAttribute('src');
+        $author = $metaData['author']
+            ?? $metaData['article:author']
+            ?? $metaData['twitter:creator']
+            ?? null;
+        $description = $metaData['description']
+            ?? $metaData['og:description']
+            ?? $metaData['twitter:description']
+            ?? null;
+        $keywords = $metaData['keywords']
+            ?? null;
+
         return [
             'title' => $html->getTitle(),
+            'image' => $image,
+            'author' => $author,
+            'description' => $description,
+            'keywords' => $keywords,
         ];
     }
 }

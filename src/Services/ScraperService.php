@@ -303,6 +303,7 @@ class ScraperService
         $scraperUrl->fill([
             'type' => $type,
             'priority' => $priority,
+            'meta_data' => $data,
             'expiration_at' => $expiration,
         ]);
         $scraperUrl->save();
