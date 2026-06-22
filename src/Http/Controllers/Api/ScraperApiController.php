@@ -101,8 +101,8 @@ class ScraperApiController extends Controller
     {
         return response()->json([
             'defaults' => [
-                'enabled' => true,
-                'robots_txt' => true,
+                'enabled' => false,
+                'robots_txt' => false,
                 'follow_links' => false,
                 'chunk_size' => 1000,
             ],
