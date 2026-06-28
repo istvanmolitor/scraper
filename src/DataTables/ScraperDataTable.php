@@ -23,12 +23,12 @@ class ScraperDataTable extends DataTable
 
     protected function initColumns(): void
     {
-        $this->addColumn('id')->setOrderable();
-        $this->addColumn('name')->setSearchable()->setOrderable();
-        $this->addColumn('base_url')->setSearchable()->setOrderable();
-        $this->addColumn('enabled')->setOrderable();
-        $this->addColumn('chunk_size')->setOrderable();
-        $this->addColumn('created_at')->setOrderable();
+        $this->addColumn('id')->setOrderable()->setHidden();
+        $this->addColumn('name')->setLabel('Név')->setSearchable()->setOrderable();
+        $this->addColumn('base_url')->setLabel('Alap URL')->setSearchable()->setOrderable();
+        $this->addColumn('enabled')->setLabel('Aktív')->setOrderable();
+        $this->addColumn('chunk_size')->setLabel('Chunk méret')->setOrderable();
+        $this->addColumn('created_at')->setLabel('Létrehozva')->setOrderable();
     }
 
     protected function getDefaultSort(): string

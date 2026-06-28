@@ -23,13 +23,13 @@ class ScraperUrlDataTable extends DataTable
 
     protected function initColumns(): void
     {
-        $this->addColumn('id')->setOrderable();
-        $this->addColumn('url')->setSearchable()->setOrderable();
-        $this->addColumn('type')->setSearchable()->setOrderable();
-        $this->addColumn('priority')->setOrderable();
-        $this->addColumn('downloaded_at')->setOrderable();
-        $this->addColumn('expiration_at')->setOrderable();
-        $this->addColumn('created_at')->setOrderable();
+        $this->addColumn('id')->setOrderable()->setHidden();
+        $this->addColumn('url')->setLabel('URL')->setSearchable()->setOrderable();
+        $this->addColumn('type')->setLabel('Típus')->setSearchable()->setOrderable();
+        $this->addColumn('priority')->setLabel('Prioritás')->setOrderable();
+        $this->addColumn('downloaded_at')->setLabel('Letöltve')->setOrderable();
+        $this->addColumn('expiration_at')->setLabel('Lejárat')->setOrderable();
+        $this->addColumn('created_at')->setLabel('Létrehozva')->setOrderable();
     }
 
     protected function getDefaultSort(): string
