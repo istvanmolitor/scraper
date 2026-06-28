@@ -41,9 +41,9 @@ class ScraperDataTable extends DataTable
         return 'desc';
     }
 
-    protected function getBaseQuery(): Builder
+    public function query(Builder $query): Builder
     {
-        return Scraper::query()->withCount([
+        return $query->withCount([
             'scraperUrls',
             'scraperUrls as downloaded_urls_count' => static fn ($q) => $q->whereNotNull('downloaded_at'),
         ]);

@@ -42,9 +42,9 @@ class ScraperUrlDataTable extends DataTable
         return 'desc';
     }
 
-    protected function getBaseQuery(): Builder
+    public function query(Builder $query): Builder
     {
-        return ScraperUrl::query()->with('scraper');
+        return $query->with('scraper');
     }
 
     protected function applyFilters(Builder $query): Builder
