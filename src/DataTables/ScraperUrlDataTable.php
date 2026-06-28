@@ -29,6 +29,7 @@ class ScraperUrlDataTable extends DataTable
     protected function initColumns(): void
     {
         $this->addColumn('id')->setOrderable()->setHidden();
+        $this->addColumn('download')->setLabel('');
         $this->addColumn('ready')->setLabel('Kész');
         $this->addColumn('url')->setLabel('URL')->setSearchable()->setOrderable();
         $this->addColumn('type')->setLabel('Típus')->setSearchable()->setOrderable();
@@ -36,7 +37,6 @@ class ScraperUrlDataTable extends DataTable
         $this->addColumn('downloaded_at')->setLabel('Letöltve')->setOrderable();
         $this->addColumn('expiration_at')->setLabel('Lejárat')->setOrderable();
         $this->addColumn('created_at')->setLabel('Létrehozva')->setOrderable();
-        $this->addColumn('download')->setLabel('Letöltés');
     }
 
     protected function getDefaultSort(): string
