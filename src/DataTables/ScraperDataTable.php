@@ -21,6 +21,11 @@ class ScraperDataTable extends DataTable
         return ScraperResource::class;
     }
 
+    protected function getSearchPlaceholder(): string
+    {
+        return 'Keresés név vagy URL alapján...';
+    }
+
     protected function initColumns(): void
     {
         $this->addColumn('id')->setOrderable()->setHidden();
