@@ -3,8 +3,9 @@
 namespace Molitor\Scraper\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
+use Molitor\Scraper\DataTables\ScraperDataTable;
 use Molitor\Scraper\Http\Requests\StoreScraperRequest;
 use Molitor\Scraper\Http\Requests\UpdateScraperRequest;
 use Molitor\Scraper\Http\Resources\ScraperResource;
@@ -24,48 +25,9 @@ class ScraperApiController extends Controller
         return app(ScraperService::class);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(ScraperDataTable $dataTable): AnonymousResourceCollection
     {
-        $query = Scraper::query()->withCount([
-            'scraperUrls',
-            'scraperUrls as downloaded_urls_count' => static fn ($innerQuery) => $innerQuery->whereNotNull('downloaded_at'),
-        ]);
-
-        if ($search = trim((string) $request->input('search', ''))) {
-            $query->where(function ($innerQuery) use ($search): void {
-                $innerQuery->where('name', 'like', "%{$search}%")
-                    ->orWhere('base_url', 'like', "%{$search}%");
-            });
-        }
-
-        $sortField = (string) $request->input('sort', 'id');
-        $allowedSortFields = ['id', 'name', 'base_url', 'enabled', 'chunk_size', 'created_at'];
-        if (! in_array($sortField, $allowedSortFields, true)) {
-            $sortField = 'id';
-        }
-
-        $sortDirection = strtolower((string) $request->input('direction', 'desc'));
-        if (! in_array($sortDirection, ['asc', 'desc'], true)) {
-            $sortDirection = 'desc';
-        }
-
-        $perPage = max(1, min(100, (int) $request->input('per_page', 15)));
-        $scrapers = $query->orderBy($sortField, $sortDirection)->paginate($perPage)->withQueryString();
-
-        return response()->json([
-            'data' => ScraperResource::collection($scrapers->items()),
-            'meta' => [
-                'current_page' => $scrapers->currentPage(),
-                'last_page' => $scrapers->lastPage(),
-                'per_page' => $scrapers->perPage(),
-                'total' => $scrapers->total(),
-            ],
-            'filters' => [
-                'search' => $search,
-                'sort' => $sortField,
-                'direction' => $sortDirection,
-            ],
-        ]);
+        return $dataTable->getResponse();
     }
 
     public function dashboard(): JsonResponse

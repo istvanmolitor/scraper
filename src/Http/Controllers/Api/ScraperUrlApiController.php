@@ -4,7 +4,9 @@ namespace Molitor\Scraper\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
+use Molitor\Scraper\DataTables\ScraperUrlDataTable;
 use Molitor\Scraper\Http\Requests\StoreScraperUrlRequest;
 use Molitor\Scraper\Http\Requests\UpdateScraperUrlRequest;
 use Molitor\Scraper\Http\Resources\ScraperUrlResource;
@@ -24,51 +26,9 @@ class ScraperUrlApiController extends Controller
         return app(ScraperService::class);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(ScraperUrlDataTable $dataTable): AnonymousResourceCollection
     {
-        $query = ScraperUrl::query()->with('scraper');
-
-        $scraperId = $request->input('scraper_id');
-        if (is_numeric($scraperId)) {
-            $query->where('scraper_id', (int) $scraperId);
-        }
-
-        if ($search = trim((string) $request->input('search', ''))) {
-            $query->where(function ($innerQuery) use ($search): void {
-                $innerQuery->where('url', 'like', "%{$search}%")
-                    ->orWhere('type', 'like', "%{$search}%");
-            });
-        }
-
-        $sortField = (string) $request->input('sort', 'id');
-        $allowedSortFields = ['id', 'type', 'url', 'priority', 'downloaded_at', 'expiration_at', 'created_at'];
-        if (! in_array($sortField, $allowedSortFields, true)) {
-            $sortField = 'id';
-        }
-
-        $sortDirection = strtolower((string) $request->input('direction', 'desc'));
-        if (! in_array($sortDirection, ['asc', 'desc'], true)) {
-            $sortDirection = 'desc';
-        }
-
-        $perPage = max(1, min(100, (int) $request->input('per_page', 15)));
-        $scraperUrls = $query->orderBy($sortField, $sortDirection)->paginate($perPage)->withQueryString();
-
-        return response()->json([
-            'data' => ScraperUrlResource::collection($scraperUrls->items()),
-            'meta' => [
-                'current_page' => $scraperUrls->currentPage(),
-                'last_page' => $scraperUrls->lastPage(),
-                'per_page' => $scraperUrls->perPage(),
-                'total' => $scraperUrls->total(),
-            ],
-            'filters' => [
-                'scraper_id' => is_numeric($scraperId) ? (int) $scraperId : null,
-                'search' => $search,
-                'sort' => $sortField,
-                'direction' => $sortDirection,
-            ],
-        ]);
+        return $dataTable->getResponse();
     }
 
     public function create(): JsonResponse
